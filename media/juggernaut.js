@@ -106,21 +106,26 @@ Juggernaut.fn.receiveData = function(e) {
 Juggernaut.fn.connectToChannel = function(channel) {
     if(this.is_connected && this.options.channels.indexOf(channel) == -1) {
         this.options.channels.push(channel);
-        var json = Juggernaut.toJSON(this.handshake());
+
+        var handshake = this.handshake();
+        handshake.command = "query";
+        handshake.type = "add_channels_to_client";
+        handshake.channels = [channel];                
+        this.sendData(Juggernaut.toJSON(handshake));
         this.logger("Connecting to channel: " + channel);
-        this.sendData(json);
     }
 };
 
 Juggernaut.fn.disconnectFromChannel = function(channel) {
     if(this.is_connected && this.options.channels.indexOf(channel) != -1) {
+        this.options.channels.splice(this.options.channels.indexOf(channel), 1);
+        
         var handshake = this.handshake();
         handshake.command = "query";
         handshake.type = "remove_channels_from_client";
-        handshake.channels = [channel];
-        var json = Juggernaut.toJSON(handshake);
+        handshake.channels = [channel];        
+        this.sendData(Juggernaut.toJSON(handshake));
         this.logger("Disconnecting from channel: " + channel);
-        this.sendData(json);
     }
 };
 
