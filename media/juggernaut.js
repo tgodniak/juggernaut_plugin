@@ -107,6 +107,7 @@ Juggernaut.fn.connectToChannel = function(channel) {
     if(this.is_connected && this.options.channels.indexOf(channel) == -1) {
         this.options.channels.push(channel);
         var json = Juggernaut.toJSON(this.handshake());
+        this.logger("Connecting to channel: " + channel);
         this.sendData(json);
     }
 };
@@ -118,8 +119,7 @@ Juggernaut.fn.disconnectFromChannel = function(channel) {
         handshake.type = "remove_channels_from_client";
         handshake.channels = [channel];
         var json = Juggernaut.toJSON(handshake);
-        console.log("Disconnecting from channel " + channel);
-        console.log("Handshake " + json);
+        this.logger("Disconnecting from channel: " + channel);
         this.sendData(json);
     }
 };
