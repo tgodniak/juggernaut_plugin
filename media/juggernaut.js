@@ -37,37 +37,37 @@ Juggernaut.fn.logger = function(msg) {
       msg = "Juggernaut: " + msg + " on " + this.options.host + ':' + this.options.port;
       this.hasLogger ? console.log(msg) : alert(msg);
     }
-  }
+};
 
 Juggernaut.fn.initialized = function(){
     this.fire_event('initialized');
     this.connect();
-  }
-  
+};
+
 Juggernaut.fn.broadcast = function(body, type, client_ids, channels){
-    var msg = {command: 'broadcast', body: body, type: (type||'to_channels')}
+    var msg = {command: 'broadcast', body: body, type: (type||'to_channels')};
     if(channels)  msg['channels'] = channels;
     if(client_ids) msg['client_ids'] = client_ids;
     this.sendData(Juggernaut.toJSON(msg));
-  }
-  
+};
+
 Juggernaut.fn.sendData = function(data){
     this.swf().sendData(escape(data));
-  }
-  
+};
+
 Juggernaut.fn.connect = function(){
     if(!this.is_connected){
       this.fire_event('connect');
       this.swf().connect(this.options.host, this.options.port);
     }
-  }
-  
+};
+
 Juggernaut.fn.disconnect = function(){
     if(this.is_connected) {
       this.swf().disconnect();
       this.is_connected = false;
     }
-  }
+};
 
 Juggernaut.fn.handshake = function() {
     var handshake = {};
@@ -81,10 +81,10 @@ Juggernaut.fn.handshake = function() {
     }
 
     return handshake;
-  }
+};
 
 Juggernaut.fn.connected = function(e) {
-    var json = Juggernaut.toJSON(this.handshake())
+    var json = Juggernaut.toJSON(this.handshake());
     this.sendData(json);
     this.ever_been_connected = true;
     this.is_connected = true;
@@ -93,48 +93,67 @@ Juggernaut.fn.connected = function(e) {
     }.bind(this), 1 * 1000);
     this.logger('Connected');
     this.fire_event('connected');
-  }
+};
 
 Juggernaut.fn.receiveData = function(e) {
      var msg = Juggernaut.parseJSON(unescape(e.toString()));
      this.currentMsgId = msg.id;
      this.currentSignature = msg.signature;
      this.logger("Received data:\n" + msg.body + "\n");
-     eval(msg.body); 
-  }
+     eval(msg.body);
+};
+
+Juggernaut.fn.connectToChannel = function(channel) {
+    if(this.is_connected && this.options.channels.indexOf(channel) == -1) {
+        this.options.channels.push(channel);
+        var json = Juggernaut.toJSON(this.handshake());
+        this.sendData(json);
+    }
+};
+
+Juggernaut.fn.disconnectFromChannel = function(channel) {
+    if(this.is_connected && this.options.channels.indexOf(channel) != -1) {
+        var handshake = this.handshake();
+        handshake.command = "query";
+        handshake.type = "remove_channels_from_client";
+        handshake.channels = [channel];
+        var json = Juggernaut.toJSON(handshake);
+        console.log("Disconnecting from channel " + channel);
+        console.log("Handshake " + json);
+        this.sendData(json);
+    }
+};
 
 var juggernaut;
 
 // Prototype specific - override for other frameworks
 Juggernaut.fn.fire_event = function(fx_name) {
      $(document).fire("juggernaut:" + fx_name);
-   }
+};
 
 Juggernaut.fn.bindToWindow = function() {
-   
-    Event.observe(window, 'load', function() {      
-      juggernaut = this;
-      this.appendFlashObject()
+    Event.observe(window, 'load', function() {
+        juggernaut = this;
+        this.appendFlashObject();
     }.bind(this));
-
-  }
+};
 
 Juggernaut.toJSON = function(hash) {
     return Object.toJSON(hash);
-  } 
+};
 
 Juggernaut.parseJSON = function(string) {
     return string.evalJSON();
-  }
+};
 
 Juggernaut.fn.swf = function(){
-    return $(this.options.swf_name);    
-  }
-  
+    return $(this.options.swf_name);
+};
+
 Juggernaut.fn.appendElement = function() {
     this.element = new Element('div', { id: 'juggernaut' });
     $(document.body).insert({ bottom: this.element });
-  }
+};
 
 /*** END PROTOTYPE SPECIFIC ***/
 
@@ -144,23 +163,23 @@ Juggernaut.fn.appendFlashObject = function(){
     }
     Juggernaut.fn.appendElement();
     swfobject.embedSWF(
-      this.options.swf_address, 
-      'juggernaut', 
-      this.options.width, 
-      this.options.height, 
+      this.options.swf_address,
+      'juggernaut',
+      this.options.width,
+      this.options.height,
       String(this.options.flash_version),
       this.options.ei_swf_address,
       {'bridgeName': this.options.bridge_name},
       {},
       {'id': this.options.swf_name, 'name': this.options.swf_name}
     );
-  }
+};
 
 Juggernaut.fn.refreshFlashObject = function(){
     this.swf().remove();
     this.appendFlashObject();
-  }
-  
+};
+
 Juggernaut.fn.errorConnecting = function(e) {
     this.is_connected = false;
     if(!this.attempting_to_reconnect) {
@@ -168,7 +187,7 @@ Juggernaut.fn.errorConnecting = function(e) {
       this.fire_event('errorConnecting');
       this.reconnect();
     }
-  }
+};
 
 Juggernaut.fn.disconnected = function(e) {
     this.is_connected = false;
@@ -177,25 +196,26 @@ Juggernaut.fn.disconnected = function(e) {
       this.fire_event('disconnected');
       this.reconnect();
     }
-  }
-  
+};
+
 Juggernaut.fn.reconnect = function(){
     if(this.options.reconnect_attempts){
-      this.attempting_to_reconnect = true;
-      this.fire_event('reconnect');
-      this.logger('Will attempt to reconnect ' + this.options.reconnect_attempts + ' times,\
+        this.attempting_to_reconnect = true;
+        this.fire_event('reconnect');
+        this.logger('Will attempt to reconnect ' + this.options.reconnect_attempts + ' times,\
 the first in ' + (this.options.reconnect_intervals || 3) + ' seconds');
-      for(var i=0; i < this.options.reconnect_attempts; i++){
-        setTimeout(function(){
-          if(!this.is_connected){
-            this.logger('Attempting reconnect');
-            if(!this.ever_been_connected){
-              this.refreshFlashObject();
-            } else {
-              this.connect();
-            }
-          }
-        }.bind(this), (this.options.reconnect_intervals || 3) * 1000 * (i + 1))
-      }
+
+        for(var i=0; i < this.options.reconnect_attempts; i++){
+            setTimeout(function(){
+                if(!this.is_connected){
+                    this.logger('Attempting reconnect');
+                    if(!this.ever_been_connected){
+                        this.refreshFlashObject();
+                    } else {
+                        this.connect();
+                    }
+                }
+            }.bind(this), (this.options.reconnect_intervals || 3) * 1000 * (i + 1));
+        }
     }
-  }
+};
