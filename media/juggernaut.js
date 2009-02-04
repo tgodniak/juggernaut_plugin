@@ -27,6 +27,7 @@ function Juggernaut(options) {
     this.ever_been_connected = false;
     this.hasLogger = "console" in window && "log" in window.console;
     this.options = options;
+    this.options.channels = this.options.channels || [];
     this.bindToWindow();
   }
 
@@ -110,7 +111,7 @@ Juggernaut.fn.connectToChannel = function(channel) {
         var handshake = this.handshake();
         handshake.command = "query";
         handshake.type = "add_channels_to_client";
-        handshake.channels = [channel];                
+        handshake.channels = [channel];
         this.sendData(Juggernaut.toJSON(handshake));
         this.logger("Connecting to channel: " + channel);
     }
@@ -119,11 +120,11 @@ Juggernaut.fn.connectToChannel = function(channel) {
 Juggernaut.fn.disconnectFromChannel = function(channel) {
     if(this.is_connected && this.options.channels.indexOf(channel) != -1) {
         this.options.channels.splice(this.options.channels.indexOf(channel), 1);
-        
+
         var handshake = this.handshake();
         handshake.command = "query";
         handshake.type = "remove_channels_from_client";
-        handshake.channels = [channel];        
+        handshake.channels = [channel];
         this.sendData(Juggernaut.toJSON(handshake));
         this.logger("Disconnecting from channel: " + channel);
     }
