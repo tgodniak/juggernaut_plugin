@@ -100,6 +100,15 @@ module Juggernaut
     end
     alias show_clients_for_channel show_clients_for_channels
 
+    def show_channels_for_client(client_id)
+      fc = {
+        :command    => :query,
+        :type       => :show_channels_for_client,
+        :client_id  => client_id
+      }
+      send_data(fc, true).flatten
+    end
+
     def send_data(hash, response = false)
       hash[:channels]   = Array(hash[:channels])   if hash[:channels]
       hash[:client_ids] = Array(hash[:client_ids]) if hash[:client_ids]
